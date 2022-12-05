@@ -4,6 +4,7 @@ const port = process.env.PORT || 3011;
 const axios = require('axios');
 const xml = require('xml');
 var format = require('xml-formatter');
+var onHeaders = require('on-headers')
 
 app.get(['/','/developer'], async (req, res) => {
     res.set('Content-Type', 'text/xml');
@@ -17,17 +18,24 @@ app.get(['/system'], async (req, res) => {
     res.send('<?xml version="1.0" encoding="UTF-8"?>' + status)
 })
 
-function buildItem(event, name, link) {
-    const posted = new Date(event.datePosted)
-    const start = new Date(event.startDate)
-    const end = new Date(event.endDate)
+app.get(['/health'], async (req, res) => {
+    scrubETag(res)
+    res.status(200).json({"status": "OK"})
+})
 
+function scrubETag(res) {
+    onHeaders(res, function () {
+      this.removeHeader('ETag')
+    })
+  }
+
+function buildItem(event, name, link) {
     const guid = event.messageId
     const message = event.message
     const affected = event.usersAffected;
     const type = event.statusType;
     const status = event.eventStatus;
-    const lastMessageDate = [end, posted, start].sort()[0]
+    const lastMessageDate = findLastMessageDate(event)
     return [
         { title: { _cdata: '"' + name + '" '+type+' issue is ' + status } },
         { pubDate: lastMessageDate.toUTCString() },
@@ -35,6 +43,25 @@ function buildItem(event, name, link) {
         { guid: [{_attr : { isPermaLink: 'false'}}, guid ]},
         { description: { _cdata: 'Service "'+name+'" '+type+' changed status to "'+status+'". \nProblem description: ' + message+ ' ' + affected } }
     ]
+}
+
+function appendDate(value, array) {
+    if (value) {
+        array.push(new Date(value))
+    }
+}
+
+function findLastMessageDate(event) {
+    var dates = []
+    const posted = appendDate(event.datePosted, dates)
+    const start = appendDate(event.startDate, dates)
+    const end = appendDate(event.endDate, dates)
+
+    if (!dates.length) {
+        // It should never happen as there should be at least startDate
+        return new Date()
+    }
+    return dates.sort()[0]
 }
 
 async function buildResponse(name, url, human_link) {
@@ -48,11 +75,18 @@ async function buildResponse(name, url, human_link) {
         apple_obj = JSON.parse(contentJson)
     }
     items = []
+    itemsDates = []
 
     for (const service of apple_obj.services) {
         for (const event of service.events) {
             items.push(buildItem(event, service.serviceName, human_link))
+            itemsDates.push(findLastMessageDate(event))
         }
+    }
+
+    if (!itemsDates.length) {
+        // If no items, we need to fallback to something
+        itemsDates.push(new Date())
     }
 
     rssObj = {
@@ -69,7 +103,7 @@ async function buildResponse(name, url, human_link) {
                     { link: human_link },
                     { description: 'Statuses of '+name },
                     { language: 'en-us' },
-                    { pubDate: (new Date).toUTCString()},
+                    { pubDate: (itemsDates.sort()[0]).toUTCString()},
                     ...items.map((item_array) => {
                         return {
                             item: item_array
