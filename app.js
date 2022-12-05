@@ -7,7 +7,7 @@ var format = require('xml-formatter');
 
 app.get(['/','/developer'], async (req, res) => {
     res.set('Content-Type', 'text/xml');
-    const status = await buildResponse('Apple Developer', 'https://www.apple.com/support/systemstatus/data/developer/system_status_en_US.js', 'https://developer.apple.com/system-status/')
+    const status = await buildResponse('Apple Developer', 'https://developer.apple.com/system-status/data/system_status_en_US.js', 'https://developer.apple.com/system-status/')
     res.send('<?xml version="1.0" encoding="UTF-8"?>' + status)
 })
 
