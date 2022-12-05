@@ -44,7 +44,7 @@ function buildItem(event, name, link) {
     const message = event.message
     const affected = event.usersAffected;
     const type = event.statusType;
-    const status = "done"; //event.eventStatus;
+    const status = event.eventStatus;
     const lastMessageDate = findLastMessageDate(event)
     return [
         { title: { _cdata: '"' + name + '" '+type+' issue is ' + status } },
@@ -71,6 +71,8 @@ function findLastMessageDate(event) {
         // It should never happen as there should be at least startDate
         return new Date()
     }
+    // Temporarly make all events as new
+    return new Date()
     return dates.sort()[0]
 }
 
