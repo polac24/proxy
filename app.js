@@ -22,7 +22,9 @@ function buildItem(event, name) {
     const type = event.statusType;
     const status = event.eventStatus;
 
-    const lastMessageDate = [end, posted, start].sort()[0]
+    var lastMessageDate = [end, posted, start].sort()[0]
+    // test: make the message always "triggerable"
+    lastMessageDate = new Date()
     return [
         { title: { _cdata: '"' + name + '" '+type+' issue is ' + status } },
         { pubDate: lastMessageDate.toUTCString() },
