@@ -5,7 +5,7 @@ const axios = require('axios');
 const xml = require('xml');
 var format = require('xml-formatter');
 
-app.get('/', async (req, res) => {
+app.get(['/','/developer'], async (req, res) => {
     res.set('Content-Type', 'text/xml');
     const status = await buildResponse()
     res.send('<?xml version="1.0" encoding="UTF-8"?>' + status)
