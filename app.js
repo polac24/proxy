@@ -44,7 +44,7 @@ function buildItem(event, name, link) {
     const message = event.message
     const affected = event.usersAffected;
     const type = event.statusType;
-    const status = event.eventStatus;
+    const status = "done"; //event.eventStatus;
     const lastMessageDate = findLastMessageDate(event)
     return [
         { title: { _cdata: '"' + name + '" '+type+' issue is ' + status } },
