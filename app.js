@@ -6,16 +6,26 @@ const xml = require('xml');
 var format = require('xml-formatter');
 var onHeaders = require('on-headers')
 
-app.get(['/','/developer'], async (req, res) => {
-    res.set('Content-Type', 'text/xml');
-    const status = await buildResponse('Apple Developer', 'https://developer.apple.com/system-status/data/system_status_en_US.js', 'https://developer.apple.com/system-status/')
-    res.send('<?xml version="1.0" encoding="UTF-8"?>' + status)
+app.get(['/','/developer'], async (req, res, next) => {
+    try {
+        res.set('Content-Type', 'text/xml');
+        const status = await buildResponse('Apple Developer', 'https://developer.apple.com/system-status/data/system_status_en_US.js', 'https://developer.apple.com/system-status/')
+        res.send('<?xml version="1.0" encoding="UTF-8"?>' + status)
+    } catch (error) {
+        // Passes errors into the error handler
+        return next(error)
+    }
 })
 
-app.get(['/system'], async (req, res) => {
-    res.set('Content-Type', 'text/xml');
-    const status = await buildResponse('Apple System', 'https://www.apple.com/support/systemstatus/data/system_status_en_US.js', 'https://www.apple.com/support/systemstatus/')
-    res.send('<?xml version="1.0" encoding="UTF-8"?>' + status)
+app.get(['/system'], async (req, res, next) => {
+    try {
+        res.set('Content-Type', 'text/xml');
+        const status = await buildResponse('Apple System', 'https://www.apple.com/support/systemstatus/data/system_status_en_US.js', 'https://www.apple.com/support/systemstatus/')
+        res.send('<?xml version="1.0" encoding="UTF-8"?>' + status)
+    } catch (error) {
+        // Passes errors into the error handler
+        return next(error)
+    }
 })
 
 app.get(['/health'], async (req, res) => {
@@ -126,5 +136,7 @@ if (process.env.RENDER != 'true') {
         const text = await buildResponse('Apple Developer', 'https://www.apple.com/support/systemstatus/data/developer/system_status_en_US.js', 'https://developer.apple.com/system-status/')
         console.log(format(text))
     })();
+} else {
+    console.log("Render start...")
 }
 
