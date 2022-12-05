@@ -24,11 +24,11 @@ function buildItem(event, name) {
 
     const lastMessageDate = [end, posted, start].sort()[0]
     return [
-        { title: 'Status' },
+        { title: { _cdata: '"' + name + '" '+type+' issue is ' + status } },
         { pubDate: lastMessageDate.toUTCString() },
         { link: 'https://developer.apple.com/system-status/' },
         { guid: guid },
-        { description: { _cdata: name+' '+type+' ('+status+'): ' + message+ ' ' + affected } }
+        { description: { _cdata: 'Service "'+name+'" '+type+' changed status to "'+status+'". \nProblem description: ' + message+ ' ' + affected } }
     ]
 }
 
