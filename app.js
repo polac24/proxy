@@ -71,8 +71,6 @@ function findLastMessageDate(event) {
         // It should never happen as there should be at least startDate
         return new Date()
     }
-    // Temporarly make all events as new
-    return new Date()
     return dates.sort()[0]
 }
 
