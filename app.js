@@ -29,7 +29,7 @@ function buildItem(event, name) {
         { title: { _cdata: '"' + name + '" '+type+' issue is ' + status } },
         { pubDate: lastMessageDate.toUTCString() },
         { link: 'https://developer.apple.com/system-status/' },
-        { guid: guid },
+        { guid: [{_attr : { isPermaLink: 'false'}}, guid ]},
         { description: { _cdata: 'Service "'+name+'" '+type+' changed status to "'+status+'". \nProblem description: ' + message+ ' ' + affected } }
     ]
 }
