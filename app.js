@@ -63,7 +63,8 @@ function appendDate(value, array) {
 
 function findLastMessageDate(event) {
     var dates = []
-    const posted = appendDate(event.datePosted, dates)
+    // datePosted is published too often
+    // const posted = appendDate(event.datePosted, dates)
     const start = appendDate(event.startDate, dates)
     const end = appendDate(event.endDate, dates)
 
