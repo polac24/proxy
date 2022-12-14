@@ -72,7 +72,8 @@ function findLastMessageDate(event) {
         // It should never happen as there should be at least startDate
         return new Date()
     }
-    return dates.sort()[0]
+    const allDates = dates.sort()
+    return allDates[allDates.length - 1]
 }
 
 async function buildResponse(name, url, human_link) {
@@ -100,6 +101,9 @@ async function buildResponse(name, url, human_link) {
         itemsDates.push(new Date())
     }
 
+    itemDates = itemsDates.sort()
+    // at least one element exists
+    lastDate = itemDates[itemDates.length - 1]
     rssObj = {
         rss: [
             {
@@ -114,7 +118,7 @@ async function buildResponse(name, url, human_link) {
                     { link: human_link },
                     { description: 'Statuses of '+name },
                     { language: 'en-us' },
-                    { pubDate: (itemsDates.sort()[0]).toUTCString()},
+                    { pubDate: lastDate.toUTCString()},
                     ...items.map((item_array) => {
                         return {
                             item: item_array
