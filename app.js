@@ -30,8 +30,7 @@ app.post(['/proxy'], async (req, res, next) => {
                 const response = await axios.post(url, req.rawBody, {
                     headers: headers
                 })
-                // console.log(response)
-                res.send(response)
+                res.send(response.data)
             } catch (error) {
                 // Passes errors into the error handler
                 return next(error)
