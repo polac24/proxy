@@ -13,14 +13,15 @@ app.post(['/proxy'], async (req, res, next) => {
     try {
         res.set('Content-Type', 'text/plain');
         url = req.query.url
-        console.log(url)
         req.rawBody = '';
         req.setEncoding('utf8');
         req.on('data', function(chunk) {
             req.rawBody += chunk;
         });
         req.on('end', async function() {
+            console.log(url)
             headers = req.headers
+            console.log(headers)
             delete headers['host']
             // delete headers['host']
             delete headers['content-length']
