@@ -19,13 +19,13 @@ app.post(['/proxy'], async (req, res, next) => {
             req.rawBody += chunk;
         });
         req.on('end', async function() {
-            console.log(url)
+            // console.log(url)
             headers = req.headers
             delete headers['host']
             // delete headers['host']
             delete headers['content-length']
-            console.log(headers)
-            console.log(req.rawBody)
+            // console.log(headers)
+            // console.log(req.rawBody)
             try {
                 const response = await axios.post(url, req.rawBody, {
                     headers: headers
