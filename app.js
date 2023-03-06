@@ -21,10 +21,11 @@ app.post(['/proxy'], async (req, res, next) => {
         req.on('end', async function() {
             console.log(url)
             headers = req.headers
-            console.log(headers)
             delete headers['host']
             // delete headers['host']
             delete headers['content-length']
+            console.log(headers)
+            console.log(req.rawBody)
             try {
                 const response = await axios.post(url, req.rawBody, {
                     headers: headers
