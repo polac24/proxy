@@ -46,35 +46,17 @@ app.get(['get'], async (req, res, next) => {
     try {
         res.set('Content-Type', 'text/plain');
         url = req.query.url
-        req.rawBody = '';
-        req.setEncoding('utf8');
-        req.on('data', function(chunk) {
-            req.rawBody += chunk;
-        });
-        req.on('end', async function() {
-            // console.log(url)
-            headers = req.headers
-            delete headers['host']
-            // delete headers['host']
-            delete headers['content-length']
-            // console.log(headers)
-            // console.log(req.rawBody)
-            try {
-                const response = await axios.get(url, {
-                    headers: headers
-                })
-                res.send(response.data)
-            } catch (error) {
-                // Passes errors into the error handler
-                return next(error)
-            }
-        });
+        headers = req.headers
+        delete headers['host']
+        delete headers['content-length']
+        const response = await axios.get(url, { headers: headers, responseType: type})
+        res.send(response.data)
     } catch (error) {
         // Passes errors into the error handler
         return next(error)
     }
 };
-    
+/*
 app.get(['*'], async (req, res, next) => {
     try {
         res.set('Content-Type', 'text/html');
@@ -135,7 +117,7 @@ app.get(['*'], async (req, res, next) => {
         return next(error)
     }
 })
-
+*/
 
 
 
