@@ -9,6 +9,14 @@ var request = require('request');
 
 
 
+// Custom CORS middleware
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+    next();
+});
+
 app.post(['/proxy'], async (req, res, next) => {
     try {
         res.set('Content-Type', 'text/plain');
@@ -45,9 +53,6 @@ app.post(['/proxy'], async (req, res, next) => {
 app.get(['/get'], async (req, res, next) => {
     try {
         res.set('Content-Type', 'text/plain');
-        res.header('Access-Control-Allow-Origin', '*');
-        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
         url = req.query.url
         headers = req.headers
         delete headers['host']
@@ -61,9 +66,6 @@ app.get(['/get'], async (req, res, next) => {
 });
 app.get(['/simple_get'], async (req, res, next) => {
     try {
-        res.header('Access-Control-Allow-Origin', '*');
-        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
         url = req.query.url
         type = req.query.type || 'text/plain';
         res.set('Content-Type', type);
