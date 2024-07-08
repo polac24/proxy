@@ -8,7 +8,6 @@ var onHeaders = require('on-headers')
 var request = require('request');
 
 
-
 // Custom CORS middleware
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
