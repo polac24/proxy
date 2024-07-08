@@ -42,6 +42,39 @@ app.post(['/proxy'], async (req, res, next) => {
     }
 })
 
+app.get(['get'], async (req, res, next) => {
+    try {
+        res.set('Content-Type', 'text/plain');
+        url = req.query.url
+        req.rawBody = '';
+        req.setEncoding('utf8');
+        req.on('data', function(chunk) {
+            req.rawBody += chunk;
+        });
+        req.on('end', async function() {
+            // console.log(url)
+            headers = req.headers
+            delete headers['host']
+            // delete headers['host']
+            delete headers['content-length']
+            // console.log(headers)
+            // console.log(req.rawBody)
+            try {
+                const response = await axios.get(url, {
+                    headers: headers
+                })
+                res.send(response.data)
+            } catch (error) {
+                // Passes errors into the error handler
+                return next(error)
+            }
+        });
+    } catch (error) {
+        // Passes errors into the error handler
+        return next(error)
+    }
+};
+    
 app.get(['*'], async (req, res, next) => {
     try {
         res.set('Content-Type', 'text/html');
