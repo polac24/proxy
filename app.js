@@ -50,6 +50,9 @@ app.get(['/get'], async (req, res, next) => {
         delete headers['host']
         delete headers['content-length']
         const response = await axios.get(url, { headers: headers, responseType: type})
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET');
+        res.setHeader('Access-Control-Max-Age', 2592000); // 30 days
         res.send(response.data)
     } catch (error) {
         // Passes errors into the error handler
@@ -62,6 +65,9 @@ app.get(['/simple_get'], async (req, res, next) => {
         type = req.query.type || 'text/plain';
         res.set('Content-Type', type);
         const response = await axios.get(url)
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET');
+        res.setHeader('Access-Control-Max-Age', 2592000); // 30 days
         res.send(response.data)
     } catch (error) {
         // Passes errors into the error handler
