@@ -55,7 +55,7 @@ app.get(['get'], async (req, res, next) => {
         // Passes errors into the error handler
         return next(error)
     }
-};
+});
 /*
 app.get(['*'], async (req, res, next) => {
     try {
