@@ -42,7 +42,7 @@ app.post(['/proxy'], async (req, res, next) => {
     }
 })
 
-app.get(['get'], async (req, res, next) => {
+app.get(['/get'], async (req, res, next) => {
     try {
         res.set('Content-Type', 'text/plain');
         url = req.query.url
@@ -50,6 +50,18 @@ app.get(['get'], async (req, res, next) => {
         delete headers['host']
         delete headers['content-length']
         const response = await axios.get(url, { headers: headers, responseType: type})
+        res.send(response.data)
+    } catch (error) {
+        // Passes errors into the error handler
+        return next(error)
+    }
+});
+app.get(['/simple_get'], async (req, res, next) => {
+    try {
+        url = req.query.url
+        type = req.query.type || 'text/plain';
+        res.set('Content-Type', type);
+        const response = await axios.get(url)
         res.send(response.data)
     } catch (error) {
         // Passes errors into the error handler
