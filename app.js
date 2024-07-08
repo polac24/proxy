@@ -45,14 +45,14 @@ app.post(['/proxy'], async (req, res, next) => {
 app.get(['/get'], async (req, res, next) => {
     try {
         res.set('Content-Type', 'text/plain');
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
         url = req.query.url
         headers = req.headers
         delete headers['host']
         delete headers['content-length']
         const response = await axios.get(url, { headers: headers, responseType: type})
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET');
-        res.setHeader('Access-Control-Max-Age', 2592000); // 30 days
         res.send(response.data)
     } catch (error) {
         // Passes errors into the error handler
@@ -61,13 +61,13 @@ app.get(['/get'], async (req, res, next) => {
 });
 app.get(['/simple_get'], async (req, res, next) => {
     try {
+        res.header('Access-Control-Allow-Origin', '*');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
         url = req.query.url
         type = req.query.type || 'text/plain';
         res.set('Content-Type', type);
         const response = await axios.get(url)
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET');
-        res.setHeader('Access-Control-Max-Age', 2592000); // 30 days
         res.send(response.data)
     } catch (error) {
         // Passes errors into the error handler
