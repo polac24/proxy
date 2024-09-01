@@ -51,7 +51,8 @@ app.post(['/proxy'], async (req, res, next) => {
 
 app.get(['/get'], async (req, res, next) => {
     try {
-        res.set('Content-Type', 'text/plain');
+        type = req.query.type || 'application/json';
+        res.set('Content-Type', type);
         url = req.query.url
         headers = req.headers
         delete headers['host']
@@ -66,7 +67,7 @@ app.get(['/get'], async (req, res, next) => {
 app.get(['/simple_get'], async (req, res, next) => {
     try {
         url = req.query.url
-        type = req.query.type || 'text/plain';
+        type = req.query.type || 'application/json';
         res.set('Content-Type', type);
         const response = await axios.get(url)
         res.send(response.data)
@@ -75,6 +76,38 @@ app.get(['/simple_get'], async (req, res, next) => {
         return next(error)
     }
 });
+
+const zlib = require('zlib');
+const { PassThrough } = require('stream');
+
+app.get(['/json'], async (req, res, next) => {
+    queryUrl = req.query.url
+    try {
+        // Forward all headers from the incoming request
+        const headers = { ...req.headers };
+        
+        // Optionally remove or modify headers if necessary
+        delete headers.host; // Remove 'host' header as it is not needed and can cause issues
+
+        // Fetch data from the provided URL with forwarded headers
+        const response = await axios.get(queryUrl, { headers, responseType: 'arraybuffer',});
+
+        // Set the content-type and other response headers
+        res.set(response.headers);
+
+        // If you need to handle encoding, you can process response data here
+        // For example, setting encoding to utf-8
+        res.set('Content-Encoding', 'gzip'); // Set appropriate encoding if known
+
+        // Send the data to the client
+        res.status(response.status).send(response.data);
+    } catch (error) {
+        // Handle errors
+        console.error('Error fetching data:', error);
+        res.status(500).json({ error: 'Failed to fetch data' });
+    }
+});
+
 /*
 app.get(['*'], async (req, res, next) => {
     try {
