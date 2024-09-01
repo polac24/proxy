@@ -102,8 +102,8 @@ app.get(['/json'], async (req, res, next) => {
         // Send the data to the client
         res.status(response.status).send(response.data);
     } catch (error) {
-        // Handle errors
-        console.error('Error fetching data:', error);
+        // Handle errors - do not print too much errors
+        // console.error('Error fetching data:', error);
         res.status(500).json({ error: 'Failed to fetch data' });
     }
 });
