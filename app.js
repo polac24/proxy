@@ -80,10 +80,10 @@ app.get(['/simple_get'], async (req, res, next) => {
 const zlib = require('zlib');
 const { PassThrough } = require('stream');
 
-function removeKeysContainingForwarded(obj) {
+function filterOutHeaders(obj) {
     const keys = Object.keys(obj);
       keys.forEach(key => {
-      if (key.toLowerCase().includes('forwarded')) {
+      if (!(key.toLowerCase().includes('agent') || key.toLowerCase().includes('accept')|| key.toLowerCase().includes('priority')) ) {
         delete obj[key];
       }
     });
@@ -97,7 +97,7 @@ app.get(['/json'], async (req, res, next) => {
 
         // Optionally remove or modify headers if necessary
         delete headers.host; // Remove 'host' header as it is not needed and can cause issues
-        removeKeysContainingForwarded(headers)
+        filterOutHeaders(headers)
         
         // Fetch data from the provided URL with forwarded headers
         console.log(headers)
