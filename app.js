@@ -80,15 +80,25 @@ app.get(['/simple_get'], async (req, res, next) => {
 const zlib = require('zlib');
 const { PassThrough } = require('stream');
 
+function removeKeysContainingForwarded(obj) {
+    const keys = Object.keys(obj);
+      keys.forEach(key => {
+      if (key.toLowerCase().includes('forwarded')) {
+        delete obj[key];
+      }
+    });
+  }
+
 app.get(['/json'], async (req, res, next) => {
     queryUrl = req.query.url
     try {
         // Forward all headers from the incoming request
         const headers = { ...req.headers };
-        
+
         // Optionally remove or modify headers if necessary
         delete headers.host; // Remove 'host' header as it is not needed and can cause issues
-
+        removeKeysContainingForwarded(headers)
+        
         // Fetch data from the provided URL with forwarded headers
         const response = await axios.get(queryUrl, { headers, responseType: 'arraybuffer',});
 
