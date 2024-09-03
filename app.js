@@ -100,6 +100,7 @@ app.get(['/json'], async (req, res, next) => {
         removeKeysContainingForwarded(headers)
         
         // Fetch data from the provided URL with forwarded headers
+        console.log(headers)
         const response = await axios.get(queryUrl, { headers, responseType: 'arraybuffer',});
 
         // Set the content-type and other response headers
