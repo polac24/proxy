@@ -138,19 +138,24 @@ app.post(['/post_json'], async (req, res, next) => {
         });
 
         req.on('end', async function() {
-            // Fetch data from the provided URL with forwarded headers
-            // console.log(queryUrl)
-            // console.log(req.rawBody)
-            const response = await axios.post(queryUrl, req.rawBody, { headers, responseType: 'arraybuffer', });
-            // Set the content-type and other response headers
-            res.set(response.headers);
+            try {
+                // Fetch data from the provided URL with forwarded headers
+                // console.log(queryUrl)
+                // console.log(req.rawBody)
+                const response = await axios.post(queryUrl, req.rawBody, { headers, responseType: 'arraybuffer', });
+                // Set the content-type and other response headers
+                res.set(response.headers);
 
-            // If you need to handle encoding, you can process response data here
-            // For example, setting encoding to utf-8
-            // res.set('Content-Encoding', 'utf8'); // Set appropriate encoding if known
+                // If you need to handle encoding, you can process response data here
+                // For example, setting encoding to utf-8
+                // res.set('Content-Encoding', 'utf8'); // Set appropriate encoding if known
 
-            // Send the data to the client
-            res.status(response.status).send(await gunzip(response.data));
+                // Send the data to the client
+                res.status(response.status).send(await gunzip(response.data));
+            } catch (error) {
+                // Passes errors into the error handler
+                return next(error)
+            }
         });
 
        
