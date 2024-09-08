@@ -7,6 +7,12 @@ var format = require('xml-formatter');
 var onHeaders = require('on-headers')
 var request = require('request');
 
+const zlib = require('zlib');
+const { PassThrough } = require('stream');
+const { promisify } = require('util');
+// Promisify the gunzip function
+const gunzip = promisify(zlib.gunzip);
+
 
 // Custom CORS middleware
 app.use((req, res, next) => {
@@ -77,13 +83,10 @@ app.get(['/simple_get'], async (req, res, next) => {
     }
 });
 
-const zlib = require('zlib');
-const { PassThrough } = require('stream');
-
 function filterOutHeaders(obj) {
     const keys = Object.keys(obj);
       keys.forEach(key => {
-      if (!(key.toLowerCase().includes('agent') || key.toLowerCase().includes('accept')|| key.toLowerCase().includes('priority')) ) {
+      if (!(key.toLowerCase().includes('agent') || key.toLowerCase().includes('accept')|| key.toLowerCase().includes('priority')|| key.toLowerCase().includes('content')) ) {
         delete obj[key];
       }
     });
@@ -111,6 +114,46 @@ app.get(['/json'], async (req, res, next) => {
 
         // Send the data to the client
         res.status(response.status).send(response.data);
+    } catch (error) {
+        // Handle errors - do not print too much errors
+        // console.error('Error fetching data:', error);
+        res.status(500).json({ error: 'Failed to fetch data', response: error });
+    }
+});
+
+app.post(['/post_json'], async (req, res, next) => {
+    queryUrl = req.query.url
+    try {
+        // Forward all headers from the incoming request
+        const headers = { ...req.headers };
+
+        // Optionally remove or modify headers if necessary
+        delete headers.host; // Remove 'host' header as it is not needed and can cause issues
+        filterOutHeaders(headers)
+
+        req.rawBody = ""
+        // req.setEncoding('utf8');
+        req.on('data', function(chunk) {
+            req.rawBody += chunk;
+        });
+
+        req.on('end', async function() {
+            // Fetch data from the provided URL with forwarded headers
+            // console.log(queryUrl)
+            // console.log(req.rawBody)
+            const response = await axios.post(queryUrl, req.rawBody, { headers, responseType: 'arraybuffer', });
+            // Set the content-type and other response headers
+            res.set(response.headers);
+
+            // If you need to handle encoding, you can process response data here
+            // For example, setting encoding to utf-8
+            // res.set('Content-Encoding', 'utf8'); // Set appropriate encoding if known
+
+            // Send the data to the client
+            res.status(response.status).send(await gunzip(response.data));
+        });
+
+       
     } catch (error) {
         // Handle errors - do not print too much errors
         // console.error('Error fetching data:', error);
