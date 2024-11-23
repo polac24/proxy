@@ -121,6 +121,29 @@ app.get(['/json'], async (req, res, next) => {
     }
 });
 
+// Define the endpoint
+app.get(['/pretty'], async (req, res, next) => {
+    queryUrl = req.query.url
+    try {
+        // Forward all headers from the incoming request
+        const headers = { ...req.headers };
+
+        // Optionally remove or modify headers if necessary
+        // delete headers.host; // Remove 'host' header as it is not needed and can cause issues
+        filterOutHeaders(headers)
+        headers['Accept-Encoding'] = 'application/json'
+
+        const response = await axios.get(queryUrl, { headers});
+
+        // Pretty-print the JSON with indentation (e.g., 2 spaces)
+        const prettyJson = JSON.stringify(response.data, null, 2);
+        res.type('application/json').send(prettyJson);
+    } catch (error) {
+        console.error('Error fetching JSON:', error.message);
+        res.status(500).send('An error occurred while fetching JSON.');
+    }
+});
+
 app.post(['/post_json'], async (req, res, next) => {
     queryUrl = req.query.url
     try {
