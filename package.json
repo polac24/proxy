@@ -11,7 +11,8 @@
     "axios": "^1.2.0",
     "xml": "^1.0.1",
     "xml-formatter": "^2.6.1",
-    "on-headers": "^1.0.2"
+    "on-headers": "^1.0.2",
+    "@iamtraction/google-translate": "2.0.1"
   },
   "scripts": {
     "start": "node app.js"

@@ -6,6 +6,7 @@ const xml = require('xml');
 var format = require('xml-formatter');
 var onHeaders = require('on-headers')
 var request = require('request');
+const translate = require('@iamtraction/google-translate');
 
 const zlib = require('zlib');
 const { PassThrough } = require('stream');
@@ -54,6 +55,136 @@ app.post(['/proxy'], async (req, res, next) => {
         return next(error)
     }
 })
+
+
+// SVT redirects require Sweden's ISP 
+app.get('/svt/*', async (req, res) => {
+    const url = req.params[0]; // Capture the URL part after /proxy-mpd/
+    if (!url) {
+        return res.status(400).send('Missing "url" query parameter');
+    }
+
+    try {
+        // Fetch the MPD content
+        var svtResponse = await axios.get(url);
+        svtResponse = svtResponse.data;
+
+        const match = svtResponse.match(/\\"svtId\\":\\"([^\\]*?)\\"/);
+        const svtId = match ? match[1] : null;
+        if (!svtId) {
+            return res.status(400).send('Missing "svtId" parameter');
+        }
+        
+        const infoUrl = `https://video.svt.se/video/${svtId}`
+        const infoResponse = await axios.get(infoUrl);
+        const result = infoResponse.data.videoReferences.find(obj => obj.url && obj.url.endsWith("/dash-full.mpd"));
+        const currentUrl = `${req.protocol}://${req.get('host')}`;
+        const redirectUrl = `${currentUrl}/proxy-mpd/${result.url}`
+        res.redirect(redirectUrl);
+    } catch (error) {
+        console.error('Error fetching MPD content:', error.message);
+        res.status(500).send('Error fetching MPD content');
+    }
+});
+
+app.get('/proxy-mpd/*', async (req, res) => {
+    const url = req.params[0]; // Capture the URL part after /proxy-mpd/
+
+    function removeLastComponent(url) {
+        const parsedUrl = new URL(url);
+        const pathParts = parsedUrl.pathname.split('/').filter(Boolean); // Split and remove empty parts
+        pathParts.pop(); // Remove the last part
+        parsedUrl.pathname = '/' + pathParts.join('/');
+        return parsedUrl.toString();
+    }
+    if (!url) {
+        return res.status(400).send('Missing "url" query parameter');
+    }
+
+    try {
+        // Fetch the MPD content
+        let urlBase = removeLastComponent(url)
+        const mpdResponse = await axios.get(url);
+        let mpdContent = mpdResponse.data;
+
+        // Replace .vtt references with the proxy URL
+        const currentUrl = `${req.protocol}://${req.get('host')}`;
+        const proxyUrl = `${currentUrl}/proxy-vtt/`;
+        mpdContent = mpdContent.replace(">", `><BaseURL>${urlBase}/</BaseURL>`)
+        mpdContent = mpdContent.replace(/>([^>]+\.vtt)</g, (match, vttPath) => {
+            return `>${proxyUrl}${urlBase}/${vttPath}<`;
+        });
+
+        res.type('application/xml').send(mpdContent);
+    } catch (error) {
+        console.error('Error fetching MPD content:', error.message);
+        res.status(500).send('Error fetching MPD content');
+    }
+});
+
+// Proxy for VTT files
+app.get('/proxy-vtt/*', async (req, res) => {
+    // mutates
+    async function translateParsedVtt(parsed, apiKey, params) {
+        let translatedCues = [];
+        if (params.restoredCuesPathname) {
+        try {
+            translatedCues = JSON.parse(await readFile(params.restoredCuesPathname));
+            assert(Array.isArray(translatedCues));
+        } catch (err) {
+            translatedCues = [];
+        }
+        }
+        let i = 0;
+        for (; i < translatedCues.length && i < parsed.cues.length; i++) {
+        parsed.cues[i].text = translatedCues[i];
+        }
+        const numberAlreadyTranslated = i;
+    
+        const max_fetch_size = 128;
+        for (; i < parsed.cues.length; i += max_fetch_size) {
+        const cues = parsed.cues.slice(i, i + max_fetch_size);
+        const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${apiKey}`, {
+            method: 'POST',
+            body: stringifyRequest(cues.map(cue => cue.text), params)
+        }).then(res => res.json());
+        if (response.error) {
+            response.error.translatedCues = translatedCues;
+            response.error.numberNewlyTranslatedCues =
+            translatedCues.length - numberAlreadyTranslated;
+            response.error.totalNumberCuesToTranslate = parsed.cues.length;
+            return Promise.reject(response.error);
+        }
+        for (let j = 0; j < response.data.translations.length; j++) {
+            const { translatedText } = response.data.translations[j];
+            parsed.cues[i + j].text = translatedText;
+            translatedCues[i + j] = translatedText;
+        }
+        }
+    }
+
+    const url = req.params[0]; // Capture the URL part after /proxy-mpd/
+
+    if (!url) {
+        return res.status(400).send('Missing "url" query parameter');
+    }
+
+    try {
+        // Fetch the VTT file content
+        const vttResponse = await axios.get(url);
+        const translatedText = await translate(vttResponse.data,  {from: 'sv', to: 'en'});
+           
+        res.status(200)
+            .set({
+                'Content-Type': 'text/vtt',
+            })
+            .send(translatedText.text);
+    } catch (error) {
+        console.error('Error fetching VTT file:', error.message);
+        res.status(500).send('Error fetching VTT file');
+    }
+});
+
 
 app.get(['/get'], async (req, res, next) => {
     try {
