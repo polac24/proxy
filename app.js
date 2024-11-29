@@ -214,6 +214,20 @@ app.get(['/simple_get'], async (req, res, next) => {
     }
 });
 
+app.get(['/tvp'], async (req, res, next) => {
+    const url = req.query.url
+    const quality = req.query.quality || '7'
+    const lastParamId = url.split(',').pop();
+
+    const response = await axios.get(`https://vod.tvp.pl/api/products/vods/${lastParamId}?lang=PL&platform=BROWSER`);
+    const lastParam = response.data.externalUid;
+    const paramLen = lastParam.length;
+    const link=`http://vod.v3.tvp.pl/video/vod3/${lastParam[paramLen-1]}/${lastParam[paramLen - 2]}/${lastParam[paramLen-3]}/${lastParam}/video-${quality}.mp4`
+
+    res.redirect(link);
+});
+
+
 function filterOutHeaders(obj) {
     const keys = Object.keys(obj);
       keys.forEach(key => {
